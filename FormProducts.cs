@@ -8,6 +8,7 @@ public partial class FormProducts : Form
     private readonly User? _currentUser;
     private List<Product> _allProducts = new();
     private int _totalCount;
+    private bool _isLoaded;
 
     public FormProducts(User? currentUser)
     {
@@ -15,6 +16,7 @@ public partial class FormProducts : Form
         InitializeComponent();
         SetupUserInfo();
         SetupFilter();
+        dataGridViewProducts.CellFormatting += DataGridView_CellFormatting;
         Load += FormProducts_Load;
     }
 
@@ -28,49 +30,60 @@ public partial class FormProducts : Form
 
     private void SetupFilter()
     {
-        comboBoxFilter.Items.Add("Все скидки");
-        comboBoxFilter.Items.Add("0 – 5%");
-        comboBoxFilter.Items.Add("5 – 15%");
-        comboBoxFilter.Items.Add("15 – 30%");
-        comboBoxFilter.Items.Add("30 – 70%");
-        comboBoxFilter.Items.Add("70 – 100%");
+        comboBoxFilter.Items.AddRange(new object[]
+        {
+            "Все скидки",
+            "0 – 5%",
+            "5 – 15%",
+            "15 – 30%",
+            "30 – 70%",
+            "70 – 100%"
+        });
         comboBoxFilter.SelectedIndex = 0;
     }
 
     private void FormProducts_Load(object? sender, EventArgs e)
     {
         LoadProducts();
+        _isLoaded = true;
     }
 
     private void LoadProducts()
     {
-        using var db = new ObutvShopContext();
-        _allProducts = db.Products
-            .Include(p => p.Category)
-            .Include(p => p.Supplier)
-            .Include(p => p.Manufacturer)
-            .OrderBy(p => p.Name)
-            .ToList();
-        _totalCount = _allProducts.Count;
-        ApplyFilters();
+        try
+        {
+            using var db = new ObutvShopContext();
+            _allProducts = db.Products
+                .Include(p => p.Category)
+                .Include(p => p.Supplier)
+                .Include(p => p.Manufacturer)
+                .Where(p => p.IsActive)
+                .OrderBy(p => p.Name)
+                .ToList();
+            _totalCount = _allProducts.Count;
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка загрузки данных:\n{ex.Message}",
+                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
     }
 
     private void ApplyFilters()
     {
         var filtered = _allProducts.AsEnumerable();
 
-        // Поиск по тексту
-        string search = textBoxSearch.Text.Trim().ToLower();
+        string search = textBoxSearch.Text.Trim();
         if (!string.IsNullOrEmpty(search))
         {
             filtered = filtered.Where(p =>
-                p.Name.ToLower().Contains(search) ||
-                p.Article.ToLower().Contains(search) ||
-                (p.Description ?? "").ToLower().Contains(search) ||
-                p.Manufacturer.Name.ToLower().Contains(search));
+                p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Article.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                (p.Description ?? "").Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Manufacturer.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        // Фильтр по скидке
         int filterIndex = comboBoxFilter.SelectedIndex;
         filtered = filterIndex switch
         {
@@ -82,31 +95,26 @@ public partial class FormProducts : Form
             _ => filtered
         };
 
-        var list = filtered.ToList();
-        DisplayProducts(list);
+        DisplayProducts(filtered.ToList());
     }
 
     private void DisplayProducts(List<Product> products)
     {
-        dataGridViewProducts.DataSource = null;
-        var displayData = products.Select(p => new
+        dataGridViewProducts.DataSource = products.Select(p => new
         {
             Артикул = p.Article,
             Наименование = p.Name,
             Категория = p.Category.Name,
             Производитель = p.Manufacturer.Name,
-            Цена = p.Price,
-            Скидка = p.DiscountPct,
-            ЦенаСоСкидкой = p.PriceDiscounted,
+            Цена = p.Price.ToString("N2") + " ₽",
+            Скидка = p.DiscountPct + "%",
+            ЦенаСоСкидкой = p.PriceDiscounted.ToString("N2") + " ₽",
             Остаток = p.StockQty,
-            Поставщик = p.Supplier.Name
+            _DiscountRaw = p.DiscountPct
         }).ToList();
 
-        dataGridViewProducts.DataSource = displayData;
-
-        // Подсветка строк со скидкой > 15%
-        dataGridViewProducts.CellFormatting -= DataGridView_CellFormatting;
-        dataGridViewProducts.CellFormatting += DataGridView_CellFormatting;
+        if (dataGridViewProducts.Columns.Contains("_DiscountRaw"))
+            dataGridViewProducts.Columns["_DiscountRaw"]!.Visible = false;
 
         labelCount.Text = $"Записей: {products.Count} из {_totalCount}";
     }
@@ -116,21 +124,26 @@ public partial class FormProducts : Form
         if (e.RowIndex < 0) return;
 
         var row = dataGridViewProducts.Rows[e.RowIndex];
-        var discountCell = row.Cells["Скидка"];
-        if (discountCell.Value is decimal discount && discount > 15)
+        if (row.Cells.Count == 0 || !dataGridViewProducts.Columns.Contains("_DiscountRaw"))
+            return;
+
+        var val = row.Cells["_DiscountRaw"].Value;
+        if (val is decimal discount && discount > 15)
         {
-            row.DefaultCellStyle.BackColor = Color.FromArgb(46, 139, 87);
-            row.DefaultCellStyle.ForeColor = Color.White;
+            e.CellStyle.BackColor = Color.FromArgb(46, 139, 87);
+            e.CellStyle.ForeColor = Color.White;
+            e.CellStyle.SelectionBackColor = Color.FromArgb(36, 110, 70);
+            e.CellStyle.SelectionForeColor = Color.White;
         }
     }
 
     private void TextBoxSearch_TextChanged(object? sender, EventArgs e)
     {
-        ApplyFilters();
+        if (_isLoaded) ApplyFilters();
     }
 
     private void ComboBoxFilter_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        ApplyFilters();
+        if (_isLoaded) ApplyFilters();
     }
 }

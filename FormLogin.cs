@@ -10,6 +10,7 @@ public partial class FormLogin : Form
     public FormLogin()
     {
         InitializeComponent();
+        AcceptButton = buttonLogin;
         CenterPanel();
         Resize += (_, _) => CenterPanel();
     }
@@ -22,6 +23,8 @@ public partial class FormLogin : Form
 
     private void ButtonLogin_Click(object? sender, EventArgs e)
     {
+        labelError.Text = "";
+
         string login = textBoxLogin.Text.Trim();
         string password = textBoxPassword.Text;
 
@@ -31,26 +34,34 @@ public partial class FormLogin : Form
             return;
         }
 
-        using var db = new ObutvShopContext();
-        var user = db.Users
-            .Include(u => u.Role)
-            .FirstOrDefault(u => u.Login == login && u.Password == password);
-
-        if (user == null)
+        try
         {
-            labelError.Text = "Неверный логин или пароль";
-            return;
-        }
+            using var db = new ObutvShopContext();
+            var user = db.Users
+                .Include(u => u.Role)
+                .FirstOrDefault(u => u.Login == login && u.Password == password);
 
-        if (!user.IsActive)
+            if (user == null)
+            {
+                labelError.Text = "Неверный логин или пароль";
+                return;
+            }
+
+            if (!user.IsActive)
+            {
+                labelError.Text = "Учётная запись заблокирована";
+                return;
+            }
+
+            AuthenticatedUser = user;
+            DialogResult = DialogResult.OK;
+            Close();
+        }
+        catch (Exception ex)
         {
-            labelError.Text = "Учётная запись заблокирована";
-            return;
+            MessageBox.Show($"Ошибка подключения к базе данных:\n{ex.Message}",
+                "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-
-        AuthenticatedUser = user;
-        DialogResult = DialogResult.OK;
-        Close();
     }
 
     private void ButtonGuest_Click(object? sender, EventArgs e)

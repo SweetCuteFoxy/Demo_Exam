@@ -33,6 +33,8 @@ namespace ObutvShop
             // panelMain
             panelMain.Anchor = AnchorStyles.None;
             panelMain.BackColor = Color.White;
+            panelMain.BorderStyle = BorderStyle.FixedSingle;
+            panelMain.Name = "panelMain";
             panelMain.Controls.Add(pictureBoxLogo);
             panelMain.Controls.Add(labelTitle);
             panelMain.Controls.Add(labelLogin);
@@ -70,8 +72,8 @@ namespace ObutvShop
             // textBoxLogin
             textBoxLogin.Font = new Font("Times New Roman", 12F);
             textBoxLogin.Location = new Point(50, 218);
+            textBoxLogin.Name = "textBoxLogin";
             textBoxLogin.Size = new Size(300, 30);
-            textBoxLogin.Anchor = AnchorStyles.Left | AnchorStyles.Right;
 
             // labelPassword
             labelPassword.Font = new Font("Times New Roman", 12F);
@@ -82,9 +84,9 @@ namespace ObutvShop
             // textBoxPassword
             textBoxPassword.Font = new Font("Times New Roman", 12F);
             textBoxPassword.Location = new Point(50, 288);
+            textBoxPassword.Name = "textBoxPassword";
             textBoxPassword.Size = new Size(300, 30);
             textBoxPassword.UseSystemPasswordChar = true;
-            textBoxPassword.Anchor = AnchorStyles.Left | AnchorStyles.Right;
 
             // buttonLogin
             buttonLogin.BackColor = Color.FromArgb(127, 255, 0);
@@ -121,9 +123,10 @@ namespace ObutvShop
             // FormLogin
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
+            BackColor = Color.FromArgb(245, 245, 245);
             ClientSize = new Size(1264, 681);
             Controls.Add(panelMain);
+            Name = "FormLogin";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Авторизация — ООО «Обувь»";
             WindowState = FormWindowState.Maximized;

@@ -41,6 +41,7 @@ namespace ObutvShop
             panelTop.Controls.Add(comboBoxFilter);
             panelTop.Dock = DockStyle.Top;
             panelTop.Location = new Point(0, 0);
+            panelTop.Name = "panelTop";
             panelTop.Size = new Size(1264, 100);
 
             // labelTitle
@@ -68,6 +69,7 @@ namespace ObutvShop
             // textBoxSearch
             textBoxSearch.Font = new Font("Times New Roman", 11F);
             textBoxSearch.Location = new Point(85, 55);
+            textBoxSearch.Name = "textBoxSearch";
             textBoxSearch.Size = new Size(350, 28);
             textBoxSearch.PlaceholderText = "Введите название или артикул...";
             textBoxSearch.TextChanged += TextBoxSearch_TextChanged;
@@ -82,6 +84,7 @@ namespace ObutvShop
             comboBoxFilter.Font = new Font("Times New Roman", 11F);
             comboBoxFilter.DropDownStyle = ComboBoxStyle.DropDownList;
             comboBoxFilter.Location = new Point(580, 55);
+            comboBoxFilter.Name = "comboBoxFilter";
             comboBoxFilter.Size = new Size(200, 28);
             comboBoxFilter.SelectedIndexChanged += ComboBoxFilter_SelectedIndexChanged;
 
@@ -90,8 +93,12 @@ namespace ObutvShop
             dataGridViewProducts.AllowUserToDeleteRows = false;
             dataGridViewProducts.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridViewProducts.BackgroundColor = Color.White;
+            dataGridViewProducts.BorderStyle = BorderStyle.None;
+            dataGridViewProducts.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+            dataGridViewProducts.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
             dataGridViewProducts.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(0, 250, 154);
             dataGridViewProducts.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 11F, FontStyle.Bold);
+            dataGridViewProducts.ColumnHeadersDefaultCellStyle.ForeColor = Color.Black;
             dataGridViewProducts.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(0, 250, 154);
             dataGridViewProducts.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             dataGridViewProducts.DefaultCellStyle.Font = new Font("Times New Roman", 10F);
@@ -99,9 +106,12 @@ namespace ObutvShop
             dataGridViewProducts.DefaultCellStyle.SelectionForeColor = Color.Black;
             dataGridViewProducts.Dock = DockStyle.Fill;
             dataGridViewProducts.EnableHeadersVisualStyles = false;
+            dataGridViewProducts.GridColor = Color.FromArgb(220, 220, 220);
             dataGridViewProducts.Location = new Point(0, 100);
+            dataGridViewProducts.Name = "dataGridViewProducts";
             dataGridViewProducts.ReadOnly = true;
             dataGridViewProducts.RowHeadersVisible = false;
+            dataGridViewProducts.RowTemplate.Height = 30;
             dataGridViewProducts.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
             // panelBottom
@@ -126,6 +136,7 @@ namespace ObutvShop
             Controls.Add(dataGridViewProducts);
             Controls.Add(panelBottom);
             Controls.Add(panelTop);
+            Name = "FormProducts";
             StartPosition = FormStartPosition.CenterScreen;
             Text = "Товары — ООО «Обувь»";
             WindowState = FormWindowState.Maximized;
