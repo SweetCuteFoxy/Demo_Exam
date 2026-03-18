@@ -1,0 +1,9 @@
+namespace SportShopV2.Models;
+
+public class Measure
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = null!;
+
+    public ICollection<Product> Products { get; set; } = new List<Product>();
+}
