@@ -60,7 +60,7 @@ namespace SportShopV1
             // labelTitle
             labelTitle.Dock = DockStyle.Left;
             labelTitle.Font = new Font("Times New Roman", 18F, FontStyle.Bold);
-            labelTitle.ForeColor = Color.FromArgb(0, 250, 154);
+            labelTitle.ForeColor = Color.FromArgb(67, 97, 238);
             labelTitle.Size = new Size(200, 55);
             labelTitle.Text = "Заказы";
             labelTitle.TextAlign = ContentAlignment.MiddleLeft;
@@ -108,16 +108,16 @@ namespace SportShopV1
             dataGridViewOrders.AllowUserToAddRows = false;
             dataGridViewOrders.AllowUserToDeleteRows = false;
             dataGridViewOrders.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridViewOrders.BackgroundColor = Color.White;
+            dataGridViewOrders.BackgroundColor = Color.FromArgb(248, 249, 250);
             dataGridViewOrders.BorderStyle = BorderStyle.None;
             dataGridViewOrders.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
             dataGridViewOrders.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewOrders.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                BackColor = Color.FromArgb(127, 255, 0),
+                BackColor = Color.FromArgb(233, 245, 255),
                 Font = new Font("Times New Roman", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(60, 60, 60),
-                SelectionBackColor = Color.FromArgb(127, 255, 0),
+                SelectionBackColor = Color.FromArgb(233, 245, 255),
                 SelectionForeColor = Color.FromArgb(60, 60, 60),
                 Padding = new Padding(8, 4, 8, 4)
             };
@@ -141,7 +141,7 @@ namespace SportShopV1
             dataGridViewOrders.SelectionChanged += DataGridViewOrders_SelectionChanged;
 
             // panelItemsHeader
-            panelItemsHeader.BackColor = Color.FromArgb(127, 255, 0);
+            panelItemsHeader.BackColor = Color.FromArgb(233, 245, 255);
             panelItemsHeader.Dock = DockStyle.Top;
             panelItemsHeader.Size = new Size(1264, 36);
             panelItemsHeader.Controls.Add(labelItems);
@@ -149,7 +149,7 @@ namespace SportShopV1
             // labelItems
             labelItems.Dock = DockStyle.Fill;
             labelItems.Font = new Font("Times New Roman", 11F, FontStyle.Bold);
-            labelItems.ForeColor = Color.FromArgb(0, 250, 154);
+            labelItems.ForeColor = Color.FromArgb(67, 97, 238);
             labelItems.Text = "  Состав заказа";
             labelItems.TextAlign = ContentAlignment.MiddleLeft;
 
@@ -163,10 +163,10 @@ namespace SportShopV1
             dataGridViewItems.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.None;
             dataGridViewItems.ColumnHeadersDefaultCellStyle = new DataGridViewCellStyle
             {
-                BackColor = Color.FromArgb(127, 255, 0),
+                BackColor = Color.FromArgb(233, 245, 255),
                 Font = new Font("Times New Roman", 10F, FontStyle.Bold),
                 ForeColor = Color.FromArgb(60, 60, 60),
-                SelectionBackColor = Color.FromArgb(127, 255, 0),
+                SelectionBackColor = Color.FromArgb(233, 245, 255),
                 SelectionForeColor = Color.FromArgb(60, 60, 60)
             };
             dataGridViewItems.ColumnHeadersHeight = 36;
@@ -187,7 +187,7 @@ namespace SportShopV1
             dataGridViewItems.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
 
             // panelBottom
-            panelBottom.BackColor = Color.FromArgb(127, 255, 0);
+            panelBottom.BackColor = Color.FromArgb(233, 245, 255);
             panelBottom.Controls.Add(labelCount);
             panelBottom.Dock = DockStyle.Bottom;
             panelBottom.Size = new Size(1264, 38);
@@ -203,7 +203,7 @@ namespace SportShopV1
             // FormOrders
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
+            BackColor = Color.FromArgb(248, 249, 250);
             ClientSize = new Size(1264, 681);
             Controls.Add(splitContainer);
             Controls.Add(panelBottom);

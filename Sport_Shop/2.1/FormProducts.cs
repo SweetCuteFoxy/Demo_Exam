@@ -23,50 +23,48 @@ public partial class FormProducts : Form
         else
             labelUserInfo.Text = "Гость";
 
-        comboBoxDiscount.Items.AddRange(new object[]
+        // Фильтры и сортировка видны только менеджеру и администратору
+        bool isManagerOrAdmin = _currentUser?.Role.Name == "Менеджер"
+                             || _currentUser?.Role.Name == "Администратор";
+        panelFilters.Visible = isManagerOrAdmin;
+        if (!isManagerOrAdmin) panelTop.Size = new Size(panelTop.Width, 60);
+
+        // Кнопка "Заказы" видна только менеджеру и администратору
+        buttonOrders.Visible = isManagerOrAdmin;
+
+        // Фильтр по поставщику
+        comboBoxSupplier.Items.Add("Все поставщики");
+        comboBoxSupplier.SelectedIndex = 0;
+
+        // Сортировка по количеству на складе
+        comboBoxSort.Items.AddRange(new object[]
         {
-            "Все скидки", "0 - 5%", "5 - 15%", "15 - 30%", "30 - 70%", "70 - 100%"
+            "Без сортировки", "Остаток ↑", "Остаток ↓"
         });
-        comboBoxDiscount.SelectedIndex = 0;
+        comboBoxSort.SelectedIndex = 0;
 
         dataGridViewProducts.CellFormatting += DataGridView_CellFormatting;
         dataGridViewProducts.CellPainting += DataGridView_CellPainting;
         Load += (_, _) =>
         {
-            LoadCategories();
-            LoadManufacturers();
+            LoadSuppliers();
             LoadProducts();
             _isLoaded = true;
         };
     }
 
-    private void LoadCategories()
+    private void LoadSuppliers()
     {
         try
         {
             using var db = new SportShopContext();
-            comboBoxCategory.Items.Add("Все категории");
-            foreach (var c in db.Categories.OrderBy(c => c.Name))
-                comboBoxCategory.Items.Add(c.Name);
-            comboBoxCategory.SelectedIndex = 0;
+            foreach (var s in db.Suppliers.OrderBy(s => s.Name))
+                comboBoxSupplier.Items.Add(s.Name);
         }
         catch { }
     }
 
-    private void LoadManufacturers()
-    {
-        try
-        {
-            using var db = new SportShopContext();
-            comboBoxManufacturer.Items.Add("Все производители");
-            foreach (var m in db.Manufacturers.OrderBy(m => m.Name))
-                comboBoxManufacturer.Items.Add(m.Name);
-            comboBoxManufacturer.SelectedIndex = 0;
-        }
-        catch { }
-    }
-
-    private void LoadProducts()
+    public void LoadProducts()
     {
         try
         {
@@ -91,39 +89,36 @@ public partial class FormProducts : Form
     {
         var filtered = _allProducts.AsEnumerable();
 
+        // Поиск по всем текстовым полям
         string search = textBoxSearch.Text.Trim();
         if (search.Length > 0)
         {
             filtered = filtered.Where(p =>
                 p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                 p.Article.Contains(search, StringComparison.OrdinalIgnoreCase) ||
-                p.Manufacturer.Name.Contains(search, StringComparison.OrdinalIgnoreCase));
+                (p.Description ?? "").Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Manufacturer.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Supplier.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Category.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                p.Unit.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        int di = comboBoxDiscount.SelectedIndex;
-        filtered = di switch
+        // Фильтр по поставщику
+        int si = comboBoxSupplier.SelectedIndex;
+        if (si > 0)
         {
-            1 => filtered.Where(p => p.DiscountPct >= 0 && p.DiscountPct < 5),
-            2 => filtered.Where(p => p.DiscountPct >= 5 && p.DiscountPct < 15),
-            3 => filtered.Where(p => p.DiscountPct >= 15 && p.DiscountPct < 30),
-            4 => filtered.Where(p => p.DiscountPct >= 30 && p.DiscountPct < 70),
-            5 => filtered.Where(p => p.DiscountPct >= 70 && p.DiscountPct <= 100),
+            string? sup = comboBoxSupplier.Items[si]?.ToString();
+            if (sup != null) filtered = filtered.Where(p => p.Supplier.Name == sup);
+        }
+
+        // Сортировка по количеству на складе
+        int sortIdx = comboBoxSort.SelectedIndex;
+        filtered = sortIdx switch
+        {
+            1 => filtered.OrderBy(p => p.StockQty),
+            2 => filtered.OrderByDescending(p => p.StockQty),
             _ => filtered
         };
-
-        int ci = comboBoxCategory.SelectedIndex;
-        if (ci > 0)
-        {
-            string? cat = comboBoxCategory.Items[ci]?.ToString();
-            if (cat != null) filtered = filtered.Where(p => p.Category.Name == cat);
-        }
-
-        int mi = comboBoxManufacturer.SelectedIndex;
-        if (mi > 0)
-        {
-            string? mfr = comboBoxManufacturer.Items[mi]?.ToString();
-            if (mfr != null) filtered = filtered.Where(p => p.Manufacturer.Name == mfr);
-        }
 
         var list = filtered.ToList();
 
@@ -163,8 +158,8 @@ public partial class FormProducts : Form
             var val = row.Cells["Скидка"].Value;
             if (val is int d && d > 15)
             {
-                e.CellStyle.BackColor = Color.FromArgb(46, 139, 87);
-                e.CellStyle.SelectionBackColor = Color.FromArgb(40, 120, 75);
+                e.CellStyle.BackColor = Color.FromArgb(46, 196, 182);
+                e.CellStyle.SelectionBackColor = Color.FromArgb(38, 170, 158);
                 e.CellStyle.SelectionForeColor = Color.Black;
             }
         }
@@ -175,8 +170,8 @@ public partial class FormProducts : Form
             var stockVal = row.Cells["Остаток"].Value;
             if (stockVal is int stock && stock == 0)
             {
-                e.CellStyle.BackColor = Color.FromArgb(0, 250, 154);
-                e.CellStyle.SelectionBackColor = Color.FromArgb(0, 220, 135);
+                e.CellStyle.BackColor = Color.FromArgb(233, 245, 255);
+                e.CellStyle.SelectionBackColor = Color.FromArgb(200, 225, 245);
                 e.CellStyle.SelectionForeColor = Color.Black;
             }
         }
@@ -188,7 +183,7 @@ public partial class FormProducts : Form
             if (discVal is int disc && disc > 0)
             {
                 e.CellStyle.Font = new Font("Times New Roman", 10F, FontStyle.Strikeout);
-                e.CellStyle.ForeColor = Color.Black;
+                e.CellStyle.ForeColor = Color.Red;
             }
         }
 
@@ -248,5 +243,11 @@ public partial class FormProducts : Form
     {
         using var form = new FormOrders(_currentUser);
         form.ShowDialog();
+    }
+
+    private void ButtonLogout_Click(object? sender, EventArgs e)
+    {
+        DialogResult = DialogResult.Abort;
+        Close();
     }
 }

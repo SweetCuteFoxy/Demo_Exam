@@ -62,7 +62,7 @@ namespace SportShopV1
 
             // labelTitle
             labelTitle.Font = new Font("Times New Roman", 20F, FontStyle.Bold);
-            labelTitle.ForeColor = Color.FromArgb(0, 250, 154);
+            labelTitle.ForeColor = Color.FromArgb(67, 97, 238);
             labelTitle.Location = new Point(10, 95);
             labelTitle.Size = new Size(400, 35);
             labelTitle.Text = "СпортЭкип";
@@ -116,7 +116,7 @@ namespace SportShopV1
             panelPasswordLine.Size = new Size(320, 1);
 
             // buttonLogin
-            buttonLogin.BackColor = Color.FromArgb(0, 250, 154);
+            buttonLogin.BackColor = Color.FromArgb(67, 97, 238);
             buttonLogin.FlatAppearance.BorderSize = 0;
             buttonLogin.FlatStyle = FlatStyle.Flat;
             buttonLogin.Font = new Font("Times New Roman", 13F, FontStyle.Bold);
@@ -129,11 +129,11 @@ namespace SportShopV1
 
             // buttonGuest
             buttonGuest.BackColor = Color.White;
-            buttonGuest.FlatAppearance.BorderColor = Color.FromArgb(0, 250, 154);
+            buttonGuest.FlatAppearance.BorderColor = Color.FromArgb(67, 97, 238);
             buttonGuest.FlatAppearance.BorderSize = 1;
             buttonGuest.FlatStyle = FlatStyle.Flat;
             buttonGuest.Font = new Font("Times New Roman", 11F);
-            buttonGuest.ForeColor = Color.FromArgb(0, 250, 154);
+            buttonGuest.ForeColor = Color.FromArgb(67, 97, 238);
             buttonGuest.Location = new Point(50, 390);
             buttonGuest.Size = new Size(320, 40);
             buttonGuest.Text = "Войти как гость";
@@ -150,7 +150,7 @@ namespace SportShopV1
             // FormLogin
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
-            BackColor = Color.White;
+            BackColor = Color.FromArgb(248, 249, 250);
             ClientSize = new Size(1264, 681);
             Controls.Add(panelMain);
             Name = "FormLogin";

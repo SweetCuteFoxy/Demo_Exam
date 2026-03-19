@@ -10,7 +10,7 @@ public partial class FormProducts : Form
     private int _totalCount;
     private bool _isLoaded;
     private readonly string _imgDir;
-    private bool _editFormOpen;
+    private FormProductEdit? _editForm;
 
     public FormProducts(User? currentUser)
     {
@@ -24,19 +24,23 @@ public partial class FormProducts : Form
         else
             labelUserInfo.Text = "Гость";
 
+        // Фильтры и сортировка видны только менеджеру и администратору
+        bool isManagerOrAdmin = _currentUser?.Role.Name == "Менеджер"
+                             || _currentUser?.Role.Name == "Администратор";
         bool isAdmin = _currentUser?.Role.Name == "Администратор";
+
+        panelFilters.Visible = isManagerOrAdmin;
+        if (!isManagerOrAdmin) panelTop.Size = new Size(panelTop.Width, 60);
+
+        buttonOrders.Visible = isManagerOrAdmin;
         buttonAdd.Visible = isAdmin;
         buttonDelete.Visible = isAdmin;
 
-        bool isManagerOrAdmin = isAdmin || _currentUser?.Role.Name == "Менеджер";
-        panelFilters.Visible = isManagerOrAdmin;
+        // Фильтр по поставщику
+        comboBoxSupplier.Items.Add("Все поставщики");
+        comboBoxSupplier.SelectedIndex = 0;
 
-        comboBoxDiscount.Items.AddRange(new object[]
-        {
-            "Все скидки", "0 - 5%", "5 - 15%", "15 - 30%", "30 - 70%", "70 - 100%"
-        });
-        comboBoxDiscount.SelectedIndex = 0;
-
+        // Сортировка по количеству на складе
         comboBoxSort.Items.AddRange(new object[]
         {
             "Без сортировки", "Остаток ↑", "Остаток ↓"
@@ -45,43 +49,17 @@ public partial class FormProducts : Form
 
         dataGridViewProducts.CellFormatting += DataGridView_CellFormatting;
         dataGridViewProducts.CellPainting += DataGridView_CellPainting;
+
+        // Двойной клик для редактирования (только админ)
         if (isAdmin)
             dataGridViewProducts.CellDoubleClick += DataGridView_CellDoubleClick;
 
         Load += (_, _) =>
         {
-            LoadCategories();
-            LoadManufacturers();
             LoadSuppliers();
             LoadProducts();
             _isLoaded = true;
         };
-    }
-
-    private void LoadCategories()
-    {
-        try
-        {
-            using var db = new SportShopContext();
-            comboBoxCategory.Items.Add("Все категории");
-            foreach (var c in db.Categories.OrderBy(c => c.Name))
-                comboBoxCategory.Items.Add(c.Name);
-            comboBoxCategory.SelectedIndex = 0;
-        }
-        catch { }
-    }
-
-    private void LoadManufacturers()
-    {
-        try
-        {
-            using var db = new SportShopContext();
-            comboBoxManufacturer.Items.Add("Все производители");
-            foreach (var m in db.Manufacturers.OrderBy(m => m.Name))
-                comboBoxManufacturer.Items.Add(m.Name);
-            comboBoxManufacturer.SelectedIndex = 0;
-        }
-        catch { }
     }
 
     private void LoadSuppliers()
@@ -89,10 +67,8 @@ public partial class FormProducts : Form
         try
         {
             using var db = new SportShopContext();
-            comboBoxSupplier.Items.Add("Все поставщики");
             foreach (var s in db.Suppliers.OrderBy(s => s.Name))
                 comboBoxSupplier.Items.Add(s.Name);
-            comboBoxSupplier.SelectedIndex = 0;
         }
         catch { }
     }
@@ -106,6 +82,7 @@ public partial class FormProducts : Form
                 .Include(p => p.Category)
                 .Include(p => p.Supplier)
                 .Include(p => p.Manufacturer)
+                .Include(p => p.OrderItems)
                 .OrderBy(p => p.Name)
                 .ToList();
             _totalCount = _allProducts.Count;
@@ -122,6 +99,7 @@ public partial class FormProducts : Form
     {
         var filtered = _allProducts.AsEnumerable();
 
+        // Поиск по всем текстовым полям
         string search = textBoxSearch.Text.Trim();
         if (search.Length > 0)
         {
@@ -135,31 +113,7 @@ public partial class FormProducts : Form
                 p.Unit.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
-        int di = comboBoxDiscount.SelectedIndex;
-        filtered = di switch
-        {
-            1 => filtered.Where(p => p.DiscountPct >= 0 && p.DiscountPct < 5),
-            2 => filtered.Where(p => p.DiscountPct >= 5 && p.DiscountPct < 15),
-            3 => filtered.Where(p => p.DiscountPct >= 15 && p.DiscountPct < 30),
-            4 => filtered.Where(p => p.DiscountPct >= 30 && p.DiscountPct < 70),
-            5 => filtered.Where(p => p.DiscountPct >= 70 && p.DiscountPct <= 100),
-            _ => filtered
-        };
-
-        int ci = comboBoxCategory.SelectedIndex;
-        if (ci > 0)
-        {
-            string? cat = comboBoxCategory.Items[ci]?.ToString();
-            if (cat != null) filtered = filtered.Where(p => p.Category.Name == cat);
-        }
-
-        int mi = comboBoxManufacturer.SelectedIndex;
-        if (mi > 0)
-        {
-            string? mfr = comboBoxManufacturer.Items[mi]?.ToString();
-            if (mfr != null) filtered = filtered.Where(p => p.Manufacturer.Name == mfr);
-        }
-
+        // Фильтр по поставщику
         int si = comboBoxSupplier.SelectedIndex;
         if (si > 0)
         {
@@ -167,6 +121,7 @@ public partial class FormProducts : Form
             if (sup != null) filtered = filtered.Where(p => p.Supplier.Name == sup);
         }
 
+        // Сортировка по количеству на складе
         int sortIdx = comboBoxSort.SelectedIndex;
         filtered = sortIdx switch
         {
@@ -190,8 +145,7 @@ public partial class FormProducts : Form
             Ед = p.Unit,
             Скидка = p.DiscountPct,
             СоСкидкой = p.PriceDiscounted,
-            Остаток = p.StockQty,
-            _Id = p.Id
+            Остаток = p.StockQty
         }).ToList();
 
         if (dataGridViewProducts.Columns.Contains("Фото"))
@@ -199,8 +153,6 @@ public partial class FormProducts : Form
             dataGridViewProducts.Columns["Фото"]!.Width = 60;
             dataGridViewProducts.Columns["Фото"]!.HeaderText = "";
         }
-        if (dataGridViewProducts.Columns.Contains("_Id"))
-            dataGridViewProducts.Columns["_Id"]!.Visible = false;
 
         labelCount.Text = $"Показано {list.Count} из {_totalCount} товаров";
     }
@@ -210,6 +162,7 @@ public partial class FormProducts : Form
         if (e.RowIndex < 0) return;
         var row = dataGridViewProducts.Rows[e.RowIndex];
 
+        // Скидка > 15% — фон #2EC4B6 (бирюзовый)
         if (dataGridViewProducts.Columns.Contains("Скидка"))
         {
             var val = row.Cells["Скидка"].Value;
@@ -221,6 +174,7 @@ public partial class FormProducts : Form
             }
         }
 
+        // Остаток == 0 — фон #E9F5FF
         if (dataGridViewProducts.Columns.Contains("Остаток"))
         {
             var stockVal = row.Cells["Остаток"].Value;
@@ -232,13 +186,14 @@ public partial class FormProducts : Form
             }
         }
 
+        // Цена перечёркнута если есть скидка
         if (dataGridViewProducts.Columns[e.ColumnIndex].Name == "Цена")
         {
             var discVal = row.Cells["Скидка"].Value;
             if (discVal is int disc && disc > 0)
             {
                 e.CellStyle.Font = new Font("Times New Roman", 10F, FontStyle.Strikeout);
-                e.CellStyle.ForeColor = Color.Black;
+                e.CellStyle.ForeColor = Color.Red;
             }
         }
 
@@ -284,73 +239,6 @@ public partial class FormProducts : Form
         }
     }
 
-    private void DataGridView_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
-    {
-        if (e.RowIndex < 0) return;
-        if (_editFormOpen) return;
-        if (!dataGridViewProducts.Columns.Contains("_Id")) return;
-
-        var val = dataGridViewProducts.Rows[e.RowIndex].Cells["_Id"].Value;
-        if (val is int productId)
-            OpenEditForm(productId);
-    }
-
-    private void OpenEditForm(int? productId)
-    {
-        if (_editFormOpen) return;
-        _editFormOpen = true;
-        using var form = new FormProductEdit(productId);
-        form.FormClosed += (_, _) => _editFormOpen = false;
-        if (form.ShowDialog() == DialogResult.OK)
-            LoadProducts();
-        _editFormOpen = false;
-    }
-
-    private void ButtonAdd_Click(object? sender, EventArgs e)
-    {
-        OpenEditForm(null);
-    }
-
-    private void ButtonDelete_Click(object? sender, EventArgs e)
-    {
-        if (dataGridViewProducts.CurrentRow == null) return;
-        if (!dataGridViewProducts.Columns.Contains("_Id")) return;
-
-        var val = dataGridViewProducts.CurrentRow.Cells["_Id"].Value;
-        if (val is not int productId) return;
-
-        var name = dataGridViewProducts.CurrentRow.Cells["Наименование"].Value?.ToString() ?? "";
-
-        using var db = new SportShopContext();
-        bool hasOrders = db.OrderItems.Any(oi => oi.ProductId == productId);
-        if (hasOrders)
-        {
-            MessageBox.Show("Невозможно удалить товар, который присутствует в заказах.",
-                "Удаление невозможно", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
-        var result = MessageBox.Show($"Удалить товар \"{name}\"?\nЭто действие нельзя отменить.",
-            "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-        if (result != DialogResult.Yes) return;
-
-        var product = db.Products.Find(productId);
-        if (product == null) return;
-
-        if (!string.IsNullOrEmpty(product.Photo))
-        {
-            var imgPath = Path.Combine(_imgDir, product.Photo);
-            if (File.Exists(imgPath) && product.Photo != "picture.png")
-            {
-                try { File.Delete(imgPath); } catch { }
-            }
-        }
-
-        db.Products.Remove(product);
-        db.SaveChanges();
-        LoadProducts();
-    }
-
     private void TextBoxSearch_TextChanged(object? sender, EventArgs e)
     {
         if (_isLoaded) ApplyFilters();
@@ -365,5 +253,93 @@ public partial class FormProducts : Form
     {
         using var form = new FormOrders(_currentUser);
         form.ShowDialog();
+    }
+
+    private void ButtonLogout_Click(object? sender, EventArgs e)
+    {
+        DialogResult = DialogResult.Abort;
+        Close();
+    }
+
+    private void ButtonAdd_Click(object? sender, EventArgs e)
+    {
+        if (_editForm != null && !_editForm.IsDisposed)
+        {
+            _editForm.BringToFront();
+            return;
+        }
+
+        _editForm = new FormProductEdit(null);
+        if (_editForm.ShowDialog() == DialogResult.OK)
+            LoadProducts();
+    }
+
+    private void ButtonDelete_Click(object? sender, EventArgs e)
+    {
+        if (dataGridViewProducts.CurrentRow == null) return;
+
+        var article = dataGridViewProducts.CurrentRow.Cells["Артикул"].Value?.ToString();
+        if (article == null) return;
+
+        var product = _allProducts.FirstOrDefault(p => p.Article == article);
+        if (product == null) return;
+
+        if (product.OrderItems.Any())
+        {
+            MessageBox.Show("Невозможно удалить товар, так как он присутствует в заказах.",
+                "Удаление невозможно", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var result = MessageBox.Show($"Удалить товар \"{product.Name}\"?",
+            "Подтверждение удаления", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+        if (result != DialogResult.Yes) return;
+
+        try
+        {
+            using var db = new SportShopContext();
+            var entity = db.Products.Find(product.Id);
+            if (entity != null)
+            {
+                // Удалить фото
+                if (!string.IsNullOrEmpty(entity.Photo) && entity.Photo != "picture.png")
+                {
+                    var path = Path.Combine(_imgDir, entity.Photo);
+                    if (File.Exists(path))
+                        try { File.Delete(path); } catch { }
+                }
+
+                db.Products.Remove(entity);
+                db.SaveChanges();
+                LoadProducts();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Ошибка удаления: {ex.Message}", "Ошибка",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void DataGridView_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex < 0) return;
+
+        var article = dataGridViewProducts.Rows[e.RowIndex].Cells["Артикул"].Value?.ToString();
+        if (article == null) return;
+
+        var product = _allProducts.FirstOrDefault(p => p.Article == article);
+        if (product == null) return;
+
+        if (_editForm != null && !_editForm.IsDisposed)
+        {
+            _editForm.BringToFront();
+            return;
+        }
+
+        _editForm = new FormProductEdit(product.Id);
+        if (_editForm.ShowDialog() == DialogResult.OK)
+            LoadProducts();
     }
 }

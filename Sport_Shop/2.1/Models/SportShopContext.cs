@@ -26,7 +26,6 @@ public class SportShopContext : DbContext
         {
             e.ToTable("roles");
             e.Property(r => r.Id).HasColumnName("id");
-            e.Property(r => r.Code).HasColumnName("code");
             e.Property(r => r.Name).HasColumnName("name");
         });
 
@@ -87,7 +86,6 @@ public class SportShopContext : DbContext
         {
             e.ToTable("order_statuses");
             e.Property(s => s.Id).HasColumnName("id");
-            e.Property(s => s.Code).HasColumnName("code");
             e.Property(s => s.Name).HasColumnName("name");
         });
 
@@ -96,21 +94,20 @@ public class SportShopContext : DbContext
             e.ToTable("pickup_points");
             e.Property(pp => pp.Id).HasColumnName("id");
             e.Property(pp => pp.Address).HasColumnName("address");
+            e.Property(pp => pp.Phone).HasColumnName("phone");
         });
 
         modelBuilder.Entity<Order>(e =>
         {
             e.ToTable("orders");
-            e.HasKey(o => o.OrderNum);
-            e.Property(o => o.OrderNum).HasColumnName("order_num");
+            e.Property(o => o.Id).HasColumnName("id");
             e.Property(o => o.OrderDate).HasColumnName("order_date");
             e.Property(o => o.DeliveryDate).HasColumnName("delivery_date");
             e.Property(o => o.PickupPointId).HasColumnName("pickup_point_id");
-            e.Property(o => o.UserId).HasColumnName("user_id");
+            e.Property(o => o.ClientName).HasColumnName("client_name");
             e.Property(o => o.PickupCode).HasColumnName("pickup_code");
             e.Property(o => o.StatusId).HasColumnName("status_id");
             e.HasOne(o => o.PickupPoint).WithMany(pp => pp.Orders).HasForeignKey(o => o.PickupPointId);
-            e.HasOne(o => o.User).WithMany().HasForeignKey(o => o.UserId);
             e.HasOne(o => o.Status).WithMany(s => s.Orders).HasForeignKey(o => o.StatusId);
         });
 
@@ -118,10 +115,10 @@ public class SportShopContext : DbContext
         {
             e.ToTable("order_items");
             e.Property(oi => oi.Id).HasColumnName("id");
-            e.Property(oi => oi.OrderNum).HasColumnName("order_num");
+            e.Property(oi => oi.OrderId).HasColumnName("order_id");
             e.Property(oi => oi.ProductId).HasColumnName("product_id");
             e.Property(oi => oi.Quantity).HasColumnName("quantity");
-            e.HasOne(oi => oi.Order).WithMany(o => o.OrderItems).HasForeignKey(oi => oi.OrderNum);
+            e.HasOne(oi => oi.Order).WithMany(o => o.OrderItems).HasForeignKey(oi => oi.OrderId);
             e.HasOne(oi => oi.Product).WithMany(p => p.OrderItems).HasForeignKey(oi => oi.ProductId);
         });
     }

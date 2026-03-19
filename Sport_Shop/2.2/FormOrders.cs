@@ -13,12 +13,8 @@ public partial class FormOrders : Form
     private static readonly Dictionary<string, Color> StatusColors = new()
     {
         ["Новый"] = Color.FromArgb(33, 150, 243),
-        ["Завершён"] = Color.FromArgb(76, 175, 80),
-        ["Отправлен"] = Color.FromArgb(255, 152, 0),
-        ["Оплачен"] = Color.FromArgb(0, 150, 136),
-        ["Подтверждён"] = Color.FromArgb(103, 58, 183),
-        ["Отменён"] = Color.FromArgb(244, 67, 54),
-        ["Возврат"] = Color.FromArgb(158, 158, 158),
+        ["Завершен"] = Color.FromArgb(76, 175, 80),
+        ["Доставляется"] = Color.FromArgb(255, 152, 0),
     };
 
     public FormOrders(User? currentUser)
@@ -61,10 +57,9 @@ public partial class FormOrders : Form
             _allOrders = db.Orders
                 .Include(o => o.Status)
                 .Include(o => o.PickupPoint)
-                .Include(o => o.User)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
-                .OrderByDescending(o => o.OrderNum)
+                .OrderByDescending(o => o.Id)
                 .ToList();
             _totalCount = _allOrders.Count;
             ApplyFilters();
@@ -84,8 +79,8 @@ public partial class FormOrders : Form
         if (search.Length > 0)
         {
             filtered = filtered.Where(o =>
-                o.OrderNum.ToString().Contains(search) ||
-                (o.User?.FullName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false));
+                o.Id.ToString().Contains(search) ||
+                o.ClientName.Contains(search, StringComparison.OrdinalIgnoreCase));
         }
 
         int si = comboBoxStatus.SelectedIndex;
@@ -99,20 +94,20 @@ public partial class FormOrders : Form
 
         dataGridViewOrders.DataSource = list.Select(o => new
         {
-            Номер = o.OrderNum,
+            Номер = o.Id,
             Дата = o.OrderDate.ToString("dd.MM.yyyy"),
             Доставка = o.DeliveryDate?.ToString("dd.MM.yyyy") ?? "",
-            Клиент = o.User?.FullName ?? "",
+            Клиент = o.ClientName,
             Код = o.PickupCode,
             Позиций = o.OrderItems.Count,
             Сумма = o.OrderItems.Sum(i => i.Quantity * i.Product.PriceDiscounted),
             Статус = o.Status?.Name ?? "",
             ПунктВыдачи = o.PickupPoint?.Address ?? "",
-            _OrderNum = o.OrderNum
+            _OrderId = o.Id
         }).ToList();
 
-        if (dataGridViewOrders.Columns.Contains("_OrderNum"))
-            dataGridViewOrders.Columns["_OrderNum"]!.Visible = false;
+        if (dataGridViewOrders.Columns.Contains("_OrderId"))
+            dataGridViewOrders.Columns["_OrderId"]!.Visible = false;
 
         labelCount.Text = $"Показано {list.Count} из {_totalCount} заказов";
     }
@@ -134,15 +129,15 @@ public partial class FormOrders : Form
     private void DataGridViewOrders_SelectionChanged(object? sender, EventArgs e)
     {
         if (dataGridViewOrders.CurrentRow == null) return;
-        if (!dataGridViewOrders.Columns.Contains("_OrderNum")) return;
+        if (!dataGridViewOrders.Columns.Contains("_OrderId")) return;
 
-        var val = dataGridViewOrders.CurrentRow.Cells["_OrderNum"].Value;
-        if (val is int orderNum)
+        var val = dataGridViewOrders.CurrentRow.Cells["_OrderId"].Value;
+        if (val is int orderId)
         {
-            var order = _allOrders.FirstOrDefault(o => o.OrderNum == orderNum);
+            var order = _allOrders.FirstOrDefault(o => o.Id == orderId);
             if (order != null)
             {
-                labelItems.Text = $"  Состав заказа #{order.OrderNum}";
+                labelItems.Text = $"  Состав заказа #{order.Id}";
                 dataGridViewItems.DataSource = order.OrderItems.Select(i => new
                 {
                     Артикул = i.Product.Article,
