@@ -21,7 +21,7 @@ namespace LibraryApp
             Size = new Size(750, 400);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.White;
-            Font = new Font("Segoe UI", 9);
+            Font = new Font("Times New Roman", 10);
 
             dgv = new DataGridView
             {

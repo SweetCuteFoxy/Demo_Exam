@@ -36,7 +36,7 @@ namespace LibraryApp
             Size = new Size(420, 500);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.White;
-            Font = new Font("Segoe UI", 9);
+            Font = new Font("Times New Roman", 10);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             AutoScroll = true;
@@ -93,7 +93,7 @@ namespace LibraryApp
                 Text = "Сохранить",
                 Size = new Size(100, 32),
                 Location = new Point(15, y),
-                BackColor = Color.FromArgb(50, 80, 130),
+                BackColor = Color.FromArgb(74, 111, 165),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand
@@ -160,6 +160,26 @@ namespace LibraryApp
                 || !int.TryParse(txtTotal.Text, out int total) || !int.TryParse(txtAvail.Text, out int avail))
             {
                 lblErr.Text = "Числовые поля заполнены неверно";
+                return;
+            }
+            if (year < 1 || year > DateTime.Now.Year)
+            {
+                lblErr.Text = $"Год должен быть от 1 до {DateTime.Now.Year}";
+                return;
+            }
+            if (pages <= 0)
+            {
+                lblErr.Text = "Количество страниц должно быть больше 0";
+                return;
+            }
+            if (total < 0 || avail < 0)
+            {
+                lblErr.Text = "Количество экземпляров не может быть отрицательным";
+                return;
+            }
+            if (avail > total)
+            {
+                lblErr.Text = "Доступных экземпляров не может быть больше общего количества";
                 return;
             }
 

@@ -23,14 +23,14 @@ namespace LibraryApp
             StartPosition = FormStartPosition.CenterScreen;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
-            BackColor = Color.WhiteSmoke;
-            Font = new Font("Segoe UI", 9);
+            BackColor = Color.White;
+            Font = new Font("Times New Roman", 10);
 
             var lblTitle = new Label
             {
                 Text = "Авторизация",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                ForeColor = Color.FromArgb(50, 80, 130),
+                Font = new Font("Times New Roman", 16, FontStyle.Bold),
+                ForeColor = Color.FromArgb(74, 111, 165),
                 Location = new Point(120, 15),
                 AutoSize = true
             };
@@ -50,7 +50,7 @@ namespace LibraryApp
                 ForeColor = Color.Red,
                 Location = new Point(40, 162),
                 Size = new Size(300, 18),
-                Font = new Font("Segoe UI", 8)
+                Font = new Font("Times New Roman", 9)
             };
             Controls.Add(lblError);
 
@@ -59,7 +59,7 @@ namespace LibraryApp
                 Text = "Войти",
                 Size = new Size(140, 35),
                 Location = new Point(40, 190),
-                BackColor = Color.FromArgb(50, 80, 130),
+                BackColor = Color.FromArgb(74, 111, 165),
                 ForeColor = Color.White,
                 FlatStyle = FlatStyle.Flat,
                 Cursor = Cursors.Hand

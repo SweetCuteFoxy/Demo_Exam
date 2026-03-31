@@ -28,16 +28,16 @@ namespace LibraryApp
             Size = new Size(1050, 620);
             StartPosition = FormStartPosition.CenterScreen;
             BackColor = Color.White;
-            Font = new Font("Segoe UI", 9);
+            Font = new Font("Times New Roman", 10);
 
-            var topPanel = new Panel { Dock = DockStyle.Top, Height = 45, BackColor = Color.FromArgb(50, 80, 130) };
+            var topPanel = new Panel { Dock = DockStyle.Top, Height = 45, BackColor = Color.FromArgb(74, 111, 165) };
             Controls.Add(topPanel);
 
             var lblUser = new Label
             {
                 Text = currentUser != null ? $"{currentUser.FullName} ({role})" : "Гость",
                 ForeColor = Color.White,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Font = new Font("Times New Roman", 10, FontStyle.Bold),
                 Location = new Point(12, 12),
                 AutoSize = true
             };
@@ -58,7 +58,7 @@ namespace LibraryApp
             btnLogout.Click += (s, e) => { DialogResult = DialogResult.Retry; Close(); };
             topPanel.Controls.Add(btnLogout);
 
-            var filterPanel = new Panel { Dock = DockStyle.Top, Height = 45, BackColor = Color.FromArgb(235, 240, 248) };
+            var filterPanel = new Panel { Dock = DockStyle.Top, Height = 45, BackColor = Color.FromArgb(240, 248, 255) };
             Controls.Add(filterPanel);
 
             bool canFilter = role == "Библиотекарь" || role == "Администратор";
@@ -95,7 +95,7 @@ namespace LibraryApp
                     Text = "Выдачи",
                     Size = new Size(80, 26),
                     Location = new Point(btnX, 9),
-                    BackColor = Color.FromArgb(50, 80, 130),
+                    BackColor = Color.FromArgb(74, 111, 165),
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand
@@ -130,7 +130,7 @@ namespace LibraryApp
                     Text = "Изменить",
                     Size = new Size(85, 26),
                     Location = new Point(btnX + 90, 9),
-                    BackColor = Color.FromArgb(80, 120, 170),
+                    BackColor = Color.FromArgb(74, 111, 165),
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand
@@ -161,7 +161,7 @@ namespace LibraryApp
                     Text = "Мои книги",
                     Size = new Size(90, 26),
                     Location = new Point(btnX, 9),
-                    BackColor = Color.FromArgb(50, 80, 130),
+                    BackColor = Color.FromArgb(74, 111, 165),
                     ForeColor = Color.White,
                     FlatStyle = FlatStyle.Flat,
                     Cursor = Cursors.Hand
@@ -182,7 +182,7 @@ namespace LibraryApp
                 RowHeadersVisible = false,
                 BackgroundColor = Color.White,
                 BorderStyle = BorderStyle.None,
-                Font = new Font("Segoe UI", 8.5f)
+                Font = new Font("Times New Roman", 10)
             };
             Controls.Add(dgv);
             dgv.BringToFront();
